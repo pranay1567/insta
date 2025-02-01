@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Reels</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+        #dropArea {
+            border: 2px dashed #ccc;
+            padding: 50px;
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        #dropArea.dragover { border-color: #007bff; color: #007bff; }
+        button { padding: 15px 30px; background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Upload Your Reels</h1>
+    <div id="dropArea">Drag & Drop Reels Here or Click to Upload</div>
+    <input type="file" id="fileInput" style="display:none;" multiple>
+
+    <button onclick="location.href='/'">Back to Dashboard</button>
+
+    <script>
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+
+        // Click to open file manager
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        // Handle file selection from file manager
+        fileInput.addEventListener('change', (event) => {
+            handleFiles(event.target.files);
+        });
+
+        // Drag-and-drop events
+        dropArea.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+
+        dropArea.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropArea.classList.remove('dragover');
+            handleFiles(event.dataTransfer.files);
+        });
+
+        // Handle and upload files
+        function handleFiles(files) {
+            [...files].forEach(file => uploadFile(file));
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload_reel', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Reel uploaded successfully!');
+                    console.log('Uploaded file URL:', data.file_url);
+                } else {
+                    alert('Upload failed: ' + data.error);
+                    console.error('Upload error:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                alert('Error uploading file. Check console for details.');
+            });
+        }
+    </script>
+</body>
+</html>

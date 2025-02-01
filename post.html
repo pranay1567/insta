@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Reels</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: center; }
+        button { padding: 15px 30px; margin: 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Schedule Reels for Posting</h1>
+
+    <label for="caption">Enter Caption for All Reels:</label><br>
+    <textarea id="caption" rows="4" cols="50"></textarea>
+
+    <h2>Uploaded Reels</h2>
+    <table>
+        <tr>
+            <th>Video</th>
+            <th>Schedule Date & Time</th>
+            <th>Select</th>
+        </tr>
+        <tbody id="reelTable">
+            {% for reel in reels %}
+            <tr>
+                <td><video src="{{ reel.video_url }}" width="100" controls></video></td>
+                <td><input type="datetime-local" class="schedule-time" required></td>
+                <td><input type="checkbox" class="select-reel" value="{{ reel.video_url }}"></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button id="scheduleBtn">Schedule Reels</button>
+    <button onclick="location.href='/'">Back to Dashboard</button>
+
+    <script>
+        document.getElementById('scheduleBtn').addEventListener('click', () => {
+    const caption = document.getElementById('caption').value;
+    const selectedReels = [];
+
+    document.querySelectorAll('.select-reel:checked').forEach(checkbox => {
+        const reelUrl = checkbox.value;
+        const scheduleTime = checkbox.parentElement.previousElementSibling.firstElementChild.value;
+        selectedReels.push({ video_url: reelUrl, schedule_time: scheduleTime });
+    });
+
+    // Debugging logs
+    console.log("Selected Reels:", selectedReels);
+    console.log("Caption:", caption);
+
+    if (selectedReels.length === 0) {
+        alert("Please select at least one reel to schedule.");
+        return;
+    }
+
+    fetch('/schedule_reels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption, reels: selectedReels })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Reels scheduled successfully!');
+        } else {
+            alert('Failed to schedule reels: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error scheduling reels:', error);
+    });
+});
+
+    </script>
+</body>
+</html>
